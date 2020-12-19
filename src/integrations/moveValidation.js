@@ -28,6 +28,7 @@ class HumanVsHuman extends Component {
     };
 
     boardValue=(board, player)=>{
+      // assign a value to the current board that it receives (evaluation function)
       const pieceValues = {
         'q': 27,
         'p': 2,
@@ -43,34 +44,113 @@ class HumanVsHuman extends Component {
       const queenRow = 7
       const queenCol = 3
 
+      const knightRow = 7
+      const leftKnightCol = 1
+      const rightKnightCol = 6
+
+      const bishopRow = 7
+      const leftBishopCol = 2
+      const rightBishopCol = 5
+
+      const corners = [(0,0), (0,1), (1,0), (1,1), (0,7), (0,6), (1,7), (1,6), (6,6), (6,7), (7,6), (7,7), (6,0), (6,1), (7,1), (7,0)]
+
+      var blackPieces = 0
+      var whitePieces = 0
+
       board.forEach((row, r)=>{
         row.forEach((piece, i)=>{
+          if (piece && piece['color'] === 'b'){
+            blackPieces += 1
+          } else if (piece && piece['color'] === 'w'){
+            whitePieces += 1
+          }
+        })
+      })
+
+      board.forEach((row, r)=>{
+        row.forEach((piece, i)=>{
+
+          
           if (piece && piece['type'] in pieceValues){
+            // adding to totalValue the value coming from black pieces.
+            // When the black is evaluating it will try to find the highest possible totalValue
+            // in this case meaning that it has more black pieces in the table and less white pieces
             if (piece['color'] == 'b'){
               totalValue += pieceValues[piece['type']]
             } else {
               totalValue -= pieceValues[piece['type']]
             }
 
-            if (this.state.round < 5 && centerRows.includes(r) && centerColumns.includes(i)){
+            // lose points for 2 pawns in the same column
+            if (piece['type'] == 'p' && piece['color'] == 'b'){
+              var pawnInRow = 0
+
+              for( var j =0; j<= 7; j++) {
+                var pieceHelper = board[j][i]
+                if (pieceHelper && pieceHelper['type'] == 'p' && pieceHelper['color'] == 'b'){
+                  pawnInRow += 1
+                }
+              }
+
+              if (pawnInRow >= 2){
+                totalValue -= 0.5*pawnInRow
+              }
+              
+            } else if (piece['type'] == 'p' && piece['color'] == 'w'){
+              var pawnInRow = 0
+
+              for( var j =0; j<= 7; j++) {
+                var pieceHelper = board[j][i]
+                if (pieceHelper && pieceHelper['type'] == 'p' && pieceHelper['color'] == 'w'){
+                  pawnInRow += 1
+                }
+              }
+
+              if (pawnInRow >= 2){
+                totalValue += 0.5*pawnInRow
+              }
+            }
+
+            // if we are in the beginning of the game, we want to have a few different heuristics
+            if ((whitePieces + blackPieces) >= 28 && centerRows.includes(r) && centerColumns.includes(i)){
 
               // removing points for moving queen too early in the game
               if (piece['type'] == 'q' && (queenRow != r || queenCol != i)){
                 if (piece['color'] == 'b'){
-                  totalValue -= 3
+                  totalValue -= 6
                 } else {
-                  totalValue += 3
+                  totalValue += 6
                 }
               }
 
-              // points for dominating the middle squares
-              if (this.state.round < 5 && centerRows.includes(r) && centerRows.includes(i)){
+              // points for moving knight early in the game
+              if (piece['type'] == 'n' && (knightRow != r || (leftKnightCol != i || rightKnightCol != i ))){
                 if (piece['color'] == 'b'){
-                  totalValue += 0.1
+                  totalValue += 6
                 } else {
-                  totalValue -= 0.1
+                  totalValue -= 6
                 }
-                return
+              }
+
+              // points for moving bishop early in the game
+              if (piece['type'] == 'b' && (bishopRow != r || (leftBishopCol != i || rightBishopCol != i ))){
+                if (piece['color'] == 'b'){
+                  totalValue += 3
+                } else {
+                  totalValue -= 3
+                }
+              }
+
+              
+
+              // points for dominating the middle squares
+              // 4 squares in the center of the board
+              if (centerRows.includes(r) && centerRows.includes(i)){
+                if (piece['color'] == 'b'){
+                  totalValue += 0.15
+                } else {
+                  totalValue -= 0.15
+                }
               }
 
               // points for dominating the middle rows
@@ -81,11 +161,40 @@ class HumanVsHuman extends Component {
               }
               
             }
+
+            // if we are in the end game, we want to have a few different heuristics
+            if (whitePieces <= 6){
+
+              // points for sending enemy king to the corners
+              if (piece['type'] == 'k' && piece['color'] == 'w'){
+
+                if (corners.includes((r, i))){
+                  totalValue += 9
+                } else {
+                  totalValue -= 9
+                }
+              }
+            } else if (blackPieces <= 6){
+
+              // points for sending enemy king to the corners
+              if (piece['type'] == 'k' && piece['color'] == 'b'){
+
+                if (corners.includes((r, i))){
+                  totalValue -= 9
+                } else {
+                  totalValue += 9
+                }
+              }
+
+            }
+
+
           }
           
         })
       })
 
+      // this function will be called for both players so we need to adjust its output accordingly
       if (player){
         return totalValue
       } else {
@@ -102,16 +211,25 @@ class HumanVsHuman extends Component {
         return [value, null]
       }
 
-
-      var possibleMoves = game.moves()
+      var moves = game.moves()
       var bestMove = null;
-      var clonedGame = cloneDeep(game);
+      // to ensure that we make changes to a differnte game object
+      var clonedGame = cloneDeep(game); 
 
-      var bestMoveValue = player ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY
+      // initializing bestMoveValue found depending on the player
+      if (player){
+        var bestMoveValue = Number.NEGATIVE_INFINITY
+      } else {
+        var bestMoveValue = Number.POSITIVE_INFINITY
+      }
+
       // Search through all possible moves
-      for (var i = 0; i < possibleMoves.length; i++) {
+      for (var i = 0; i < moves.length; i++) {
         // Make fake move to calculate its value
-        clonedGame.move(possibleMoves[i])
+        clonedGame.move(moves[i])
+
+        // if game scenario has been a repeated for three times in a row, AI will not consider the 
+        // same movement again
         if (clonedGame.in_threefold_repetition()) {
           // go to next possible move because this one was repeated 3 times.
           // added this constraint so the AI is forced to make different moves so the game won't get stuck.
@@ -119,35 +237,45 @@ class HumanVsHuman extends Component {
           game.undo();
           continue
         }
+
+        // get best value from this move looking 2 depths ahead
         var value = this.getBestMove(clonedGame, depth-1, (!player))[0]
 
+
         if (player) {
-          // Look for moves that maximize position
+          // Look for moves that maximize position, (AI moves)
           if (value > bestMoveValue) {
+            // if it was the highest evaluation function move so far, we make this move
             bestMoveValue = value;
-            bestMove = possibleMoves[i];
+            bestMove = moves[i];
           }
+          // setting alpha variable to do prunning later on
           var alpha = Math.max(Number.NEGATIVE_INFINITY, value);
         } else {
-          // Look for moves that minimize position
+          // Look for best moves that minimize position, (Human moves)
           if (value < bestMoveValue) {
+            // we assume human is making the best move for himself
             bestMoveValue = value;
-            bestMove = possibleMoves[i];
+            bestMove = moves[i];
           }
+          // setting beta variable to do prunning
           var beta = Math.min(Number.POSITIVE_INFINITY, value);
         }
 
-        // Undo previous move
+        // undo fake move, so we don't change the game scenario in any way
         game.undo();
 
+        // alpha beta prunning when we already found a solution that is at least as good as the current one
+        // those branches won't be able to influence the final decision so we don't need to waste time analyzing them
         if (beta <= alpha) {
           break;
         }
 
       }
+      // if it returned no best move, we make a random one
+      var randomNumber = Math.floor(Math.random() * (moves.length + 1));
 
-      var randomnumber = Math.floor(Math.random() * (possibleMoves.length + 1));
-      return [bestMoveValue, bestMove || possibleMoves[randomnumber]]
+      return [bestMoveValue, bestMove || moves[randomNumber]]
     };
 
     makeBestMove=()=> {
@@ -160,7 +288,6 @@ class HumanVsHuman extends Component {
       var bestMove = this.getBestMove(this.game, 2, true);
 
       this.game.move(bestMove[1]);
-      
 
       this.setState(({
         fen: this.game.fen(),
@@ -212,7 +339,7 @@ class HumanVsHuman extends Component {
       }));
     };
   
-    onDrop = ({ sourceSquare, targetSquare }) => {
+    onDrop = async ({ sourceSquare, targetSquare }) => {
       // see if the move is legal
       let move = this.game.move({
         from: sourceSquare,
@@ -228,7 +355,7 @@ class HumanVsHuman extends Component {
         squareStyles: squareStyling({ pieceSquare, history })
       }));
 
-      window.setTimeout(this.makeBestMove, 250);
+      await new Promise(this.makeBestMove)
     };
   
     onMouseOverSquare = square => {
@@ -281,6 +408,8 @@ class HumanVsHuman extends Component {
         history: this.game.history({ verbose: true }),
         pieceSquare: ""
       });
+
+      setTimeout(this.makeBestMove, 250)
     };
   
     onSquareRightClick = square =>
