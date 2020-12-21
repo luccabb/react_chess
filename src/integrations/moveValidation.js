@@ -112,7 +112,7 @@ class HumanVsHuman extends Component {
             }
 
             // if we are in the beginning of the game, we want to have a few different heuristics
-            if ((whitePieces + blackPieces) >= 28 && centerRows.includes(r) && centerColumns.includes(i)){
+            if ((whitePieces + blackPieces) >= 28){
 
               // removing points for moving queen too early in the game
               if (piece['type'] == 'q' && (queenRow != r || queenCol != i)){
@@ -124,11 +124,11 @@ class HumanVsHuman extends Component {
               }
 
               // points for moving knight early in the game
-              if (piece['type'] == 'n' && (knightRow != r || (leftKnightCol != i || rightKnightCol != i ))){
+              if (piece['type'] == 'n' && (knightRow != r && (leftKnightCol != i || rightKnightCol != i ))){
                 if (piece['color'] == 'b'){
-                  totalValue += 6
+                  totalValue += 3
                 } else {
-                  totalValue -= 6
+                  totalValue -= 3
                 }
               }
 
@@ -147,17 +147,19 @@ class HumanVsHuman extends Component {
               // 4 squares in the center of the board
               if (centerRows.includes(r) && centerRows.includes(i)){
                 if (piece['color'] == 'b'){
-                  totalValue += 0.15
+                  totalValue += 0.07
                 } else {
-                  totalValue -= 0.15
+                  totalValue -= 0.07
                 }
               }
 
               // points for dominating the middle rows
-              if (piece['color'] == 'b'){
-                totalValue += 0.05
-              } else {
-                totalValue -= 0.05
+              if (centerRows.includes(r) && centerColumns.includes(i)){
+                if (piece['color'] == 'b'){
+                  totalValue += 0.06
+                } else {
+                  totalValue -= 0.06
+                }
               }
               
             }
@@ -240,7 +242,6 @@ class HumanVsHuman extends Component {
 
         // get best value from this move looking 2 depths ahead
         var value = this.getBestMove(clonedGame, depth-1, (!player))[0]
-
 
         if (player) {
           // Look for moves that maximize position, (AI moves)
