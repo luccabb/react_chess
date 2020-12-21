@@ -124,7 +124,7 @@ class HumanVsHuman extends Component {
               }
 
               // points for moving knight early in the game
-              if (piece['type'] == 'n' && (knightRow != r && (leftKnightCol != i || rightKnightCol != i ))){
+              if (piece['type'] == 'n' && (knightRow != r || (leftKnightCol != i || rightKnightCol != i ))){
                 if (piece['color'] == 'b'){
                   totalValue += 3
                 } else {
