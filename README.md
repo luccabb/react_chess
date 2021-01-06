@@ -1,70 +1,27 @@
-# Getting Started with Create React App
+# React Chess AI
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The algorithm for the AI is a minimax with alpha-beta pruning (based on Russell & Norvig (2010)), since the search space for chess is really big the AI needs to do a depth limited search, where it will only look a few movements ahead and try to evaluate each possible board position with an evaluation function that attributes different score for different boards, and it will prune branches as much as it can (so it doesn’t look at paths that won’t affect the ‘best move’). Since all the processing is being done on the client side we cannot go very deep into the decision tree since it will start taking a long time for the AI to move its pieces, so to ensure minimum delay for the user my AI is using a depth of 2. Since we cannot go very deep into the movements we need to create a good evaluation function that accounts for different things that are considered important in chess. This way even though our AI can only look 2 depths ahead it will be able to take a few key parameters into account.
 
-## Available Scripts
+## Getting started
 
-In the project directory, you can run:
+To get started with the app, clone the repo and then follow the instructions to initialize it:
 
-### `yarn start`
+Change Directory and Install dependencies
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
+$ cd react_chess
+$ npm install
+```
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Run the app in a local server:
 
-### `yarn test`
+```
+$ npm run start
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Build With
 
-### `yarn build`
+* [React](https://reactjs.org/) - Web framework
+* [chessboardjsx](https://github.com/willb335/chessboardjsx) - Chessboard built for React
+* [chess.js](https://github.com/willb335/chessboardjsx) - A Javascript chess library for chess move generation/validation, piece placement/movement, and check/checkmate/draw detection
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
