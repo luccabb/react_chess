@@ -5,6 +5,7 @@ import Chess from  "chess.js"
 import cloneDeep from 'lodash/cloneDeep'
 import Chessboard from "chessboardjsx";
 import { roleElements } from "aria-query";
+import axios from 'axios';
 
 
 class HumanVsHuman extends Component {
@@ -279,16 +280,30 @@ class HumanVsHuman extends Component {
       return [bestMoveValue, bestMove || moves[randomNumber]]
     };
 
-    makeBestMove=()=> {
+    getBestMoveApi = async (game, depth) => {
+      var result = await axios.get(process.env.REACT_APP_BACKEND, {
+          params: {
+            "fen": game.fen()
+          }
+      }).then((response) => {
+        console.log(response.data)
+        return response
+      })
+      return result['data']['body']['move']
+    };
+
+    makeBestMove = async () => {
 
       if (this.game.game_over()) {
         this.setState(({gameOver: true, playerLost: false}))
         return
       }
 
-      var bestMove = this.getBestMove(this.game, 2, true);
-
-      this.game.move(bestMove[1]);
+      // var bestMove = this.getBestMove(this.game, 2, true);
+      // this.game.move(bestMove[1]);
+      
+      var bestMove = await this.getBestMoveApi(this.game, 4);
+      this.game.move(bestMove, { sloppy: true });
 
       this.setState(({
         fen: this.game.fen(),
